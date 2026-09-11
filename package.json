@@ -1,0 +1,15 @@
+{
+  "name": "cat-tarot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ดูดวงไพ่ยิปซีแมวเหมียว — เว็บดูดวงไพ่ทาโรต์ 78 ใบ ธีมแมวการ์ตูนลายเส้น",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "check": "node scripts/verify-deck.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

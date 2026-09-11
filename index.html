@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ดูดวงไพ่ยิปซีแมวเหมียว | แม่หมอเหมียวเปิดไพ่ให้จ้า</title>
+  <meta name="description" content="ดูดวงไพ่ยิปซี 78 ใบ สไตล์แมวเหมียวน่ารัก ทำนายการงาน การเงิน สุขภาพ ความรัก พร้อมปรึกษาแม่หมอแบบพิมพ์คำถามเองได้" />
+  <script src="./vendor/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { ink: '#111111', line: '#e7e7e7', blush: '#FFD3DA' },
+          fontFamily: { thai: ['"Noto Sans Thai"', 'Sarabun', 'Thonburi', 'system-ui', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23111' stroke-width='7' stroke-linejoin='round'%3E%3Ccircle cx='50' cy='56' r='30'/%3E%3Cpath d='M28 36 L26 12 L48 26z'/%3E%3Cpath d='M72 36 L74 12 L52 26z'/%3E%3C/g%3E%3Cg fill='%23111'%3E%3Ccircle cx='39' cy='52' r='5'/%3E%3Ccircle cx='61' cy='52' r='5'/%3E%3C/g%3E%3C/svg%3E" />
+</head>
+
+<body class="bg-white text-ink font-thai antialiased">
+  <div class="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:pt-14">
+
+    <!-- ส่วนหัว -->
+    <header class="text-center">
+      <div class="mx-auto mb-5 w-20">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <g fill="#fff" stroke="#111" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M34 44 L31 14 L57 32z" />
+            <path d="M86 44 L89 14 L63 32z" />
+            <circle cx="60" cy="66" r="36" />
+          </g>
+          <path d="M38 26 L38 20 L50 28z" fill="#FFD3DA" />
+          <path d="M82 26 L82 20 L70 28z" fill="#FFD3DA" />
+          <circle cx="46" cy="62" r="6" fill="#111" />
+          <circle cx="74" cy="62" r="6" fill="#111" />
+          <ellipse cx="34" cy="78" rx="6" ry="4" fill="#FFD3DA" />
+          <ellipse cx="86" cy="78" rx="6" ry="4" fill="#FFD3DA" />
+          <path d="M52 78 Q56 84 60 78 Q64 84 68 78" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round" />
+          <g stroke="#111" stroke-width="3" stroke-linecap="round">
+            <path d="M24 64 L6 60" /><path d="M24 72 L6 74" />
+            <path d="M96 64 L114 60" /><path d="M96 72 L114 74" />
+          </g>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold leading-snug sm:text-4xl">ดูดวงไพ่ยิปซีแมวเหมียว</h1>
+      <p class="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-gray-500">
+        แม่หมอเหมียวเปิดไพ่ยิปซีครบ 78 ใบ ทำนายตามหลักไพ่จริง แต่เล่าให้ฟังแบบเพื่อนคุยกัน
+        เลือกหมวดที่อยากรู้ แล้วสับไพ่ด้วยใจของเธอเองเลยจ้า
+      </p>
+    </header>
+
+    <!-- ขั้นที่ 1: เลือกหมวด -->
+    <section id="stepCategory" class="mt-12">
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-lg font-bold">เลือกหมวดที่อยากดู</h2>
+        <span class="text-xs text-gray-400">ดวงล่วงหน้า 1 เดือน</span>
+      </div>
+      <div id="categoryGrid" class="mt-4 grid grid-cols-2 gap-3 sm:gap-4"></div>
+    </section>
+
+    <!-- ขั้นที่ 2: สับไพ่ -->
+    <section id="stepShuffle" class="mt-10 hidden">
+      <div class="rounded-3xl border border-line p-6 sm:p-8">
+        <p class="text-xs font-medium uppercase tracking-widest text-gray-400">หมวดที่เลือก</p>
+        <h2 id="shuffleCategoryName" class="mt-1 text-2xl font-bold"></h2>
+        <p id="shuffleCategoryHint" class="mt-1 text-sm text-gray-500"></p>
+
+        <form id="shuffleForm" class="mt-6" novalidate>
+          <label for="shuffleCount" class="block text-[15px] font-medium">
+            ระบุจำนวนครั้งที่ต้องการสับไพ่
+          </label>
+          <p class="mt-1 text-xs text-gray-400">ใส่ได้ 1–99 ครั้ง ยิ่งสับเยอะไพ่ยิ่งคลุกเคล้า ตั้งจิตแล้วพิมพ์เลขที่ใจนึกถึงมาเลยจ้า</p>
+          <div class="mt-3 flex flex-col gap-3 sm:flex-row">
+            <input id="shuffleCount" name="shuffleCount" type="number" inputmode="numeric" min="1" max="99" value="7"
+              class="w-full rounded-2xl border border-line px-4 py-3 text-lg outline-none transition focus:border-ink sm:w-40" />
+            <button type="submit"
+              class="w-full rounded-2xl bg-ink px-6 py-3 text-[15px] font-semibold text-white transition hover:opacity-85 active:scale-[0.99] sm:w-auto">
+              สับไพ่แล้วเปิดเลย
+            </button>
+            <button type="button" id="backToCategory"
+              class="w-full rounded-2xl border border-line px-6 py-3 text-[15px] font-medium text-gray-500 transition hover:border-ink hover:text-ink sm:w-auto">
+              เปลี่ยนหมวด
+            </button>
+          </div>
+          <p id="shuffleError" class="mt-3 hidden text-sm font-medium text-rose-500"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ขั้นที่ 3: อนิเมชันสับไพ่ -->
+    <section id="stepShuffling" class="mt-10 hidden text-center">
+      <div id="shuffleStage" class="shuffle-stage"></div>
+      <p id="shuffleStatus" class="mt-4 text-[15px] font-medium">กำลังสับไพ่...</p>
+      <p class="mt-1 text-sm text-gray-400">ตั้งใจนึกถึงคำถามในใจไว้นะ</p>
+    </section>
+
+    <!-- ขั้นที่ 4: ผลคำทำนาย -->
+    <section id="stepReading" class="mt-10 hidden" aria-live="polite">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-widest text-gray-400">คำทำนายรายเดือน</p>
+          <h2 id="readingTitle" class="mt-1 text-2xl font-bold"></h2>
+        </div>
+        <span id="readingMood" class="rounded-full border border-line px-4 py-1.5 text-sm font-semibold"></span>
+      </div>
+      <p id="readingMeta" class="mt-2 text-sm text-gray-500"></p>
+
+      <div id="cardRow" class="mt-6 grid grid-cols-3 gap-3 sm:gap-5"></div>
+      <div id="cardDetails" class="mt-8 space-y-4"></div>
+
+      <div class="mt-8 rounded-3xl bg-gray-50 p-6 sm:p-7">
+        <h3 class="text-base font-bold">แม่หมอสรุปให้</h3>
+        <p id="readingSummary" class="mt-2 text-[15px] leading-relaxed text-gray-700"></p>
+        <h4 class="mt-5 text-sm font-bold">ทำตามนี้แล้วดวงดีขึ้นแน่</h4>
+        <ul id="adviceList" class="mt-2 space-y-2 text-[15px] leading-relaxed text-gray-700"></ul>
+      </div>
+
+      <!-- ไพ่คำแนะนำ -->
+      <div class="mt-8 text-center">
+        <button id="oracleBtn" type="button"
+          class="rounded-2xl border-2 border-ink px-7 py-3 text-[15px] font-semibold transition hover:bg-ink hover:text-white active:scale-[0.99]">
+          คำแนะนำจากไพ่
+        </button>
+        <p class="mt-2 text-xs text-gray-400">สุ่มไพ่แมวเหมียว 1 ใบ พร้อมคำแนะนำอบอุ่น ๆ ที่เอาไปทำได้จริง</p>
+      </div>
+      <div id="oracleResult" class="mt-6 hidden"></div>
+
+      <div class="mt-10 text-center">
+        <button id="resetBtn" type="button" class="text-sm font-medium text-gray-400 underline decoration-dotted underline-offset-4 hover:text-ink">
+          เริ่มดูดวงใหม่อีกรอบ
+        </button>
+      </div>
+    </section>
+
+    <hr class="my-14 border-line" />
+
+    <!-- ปรึกษาหมอดู -->
+    <section id="consultSection">
+      <div class="rounded-3xl border-2 border-ink p-6 sm:p-8">
+        <h2 class="text-xl font-bold">ปรึกษาหมอดู</h2>
+        <p class="mt-2 text-sm leading-relaxed text-gray-500">
+          มีเรื่องคาใจแบบเจาะจงใช่ไหม พิมพ์คำถามมาเลยจ้า แม่หมอจะสับไพ่และเปิด 3 ใบ
+          แล้วตอบให้ตรงคำถามตามหลักไพ่ยิปซี
+        </p>
+
+        <form id="consultForm" class="mt-5" novalidate>
+          <label for="consultInput" class="sr-only">คำถามของคุณ</label>
+          <textarea id="consultInput" rows="4" maxlength="500"
+            placeholder="เช่น เดือนหน้าควรย้ายงานไหม หรือ คนที่คุยอยู่เขาคิดกับเรายังไง"
+            class="w-full resize-none rounded-2xl border border-line p-4 text-[15px] leading-relaxed outline-none transition focus:border-ink"></textarea>
+          <div class="mt-2 flex items-center justify-between text-xs text-gray-400">
+            <span>พิมพ์ได้ไม่เกิน 500 ตัวอักษร</span>
+            <span id="consultCounter">0 / 500</span>
+          </div>
+          <button id="consultSubmit" type="submit"
+            class="mt-4 w-full rounded-2xl bg-ink px-6 py-3.5 text-[15px] font-semibold text-white transition hover:opacity-85 active:scale-[0.99] disabled:opacity-40">
+            ส่งคำถาม
+          </button>
+          <p id="consultError" class="mt-3 hidden text-sm font-medium text-rose-500"></p>
+        </form>
+
+        <div id="consultLoading" class="mt-6 hidden text-center">
+          <div class="mx-auto h-8 w-8 spin-slow rounded-full border-2 border-line border-t-ink"></div>
+          <p class="mt-3 text-sm text-gray-500">แม่หมอกำลังสับไพ่และอ่านคำตอบให้...</p>
+        </div>
+
+        <div id="consultResult" class="mt-7 hidden" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <footer class="mt-14 text-center text-xs leading-relaxed text-gray-400">
+      <p>คำทำนายทั้งหมดอ้างอิงความหมายไพ่ยิปซีสาย Rider-Waite-Smith และมีไว้เพื่อความบันเทิงและการทบทวนตัวเอง</p>
+      <p class="mt-1">ไม่ใช้แทนคำแนะนำทางการแพทย์ กฎหมาย หรือการลงทุน · ถ้าใจไม่ไหวจริง ๆ โทรสายด่วนสุขภาพจิต 1323 ได้ตลอดนะ</p>
+    </footer>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
