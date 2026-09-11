@@ -3,7 +3,14 @@
 import { FULL_DECK, drawCards, drawOne } from './deck.js';
 import { oracle } from './data/oracle.js';
 import { catCardSVG, cardBackSVG } from './catArt.js';
-import { CATEGORIES, buildReading, CONSULT_POSITIONS } from './reading.js';
+import {
+  CATEGORIES,
+  CATEGORY_MAP,
+  buildReading,
+  CONSULT_POSITIONS,
+  assertCategoryKey,
+  createPredictionSession
+} from './reading.js';
 import { askFortuneTeller, MAX_QUESTION_LENGTH } from './consult.js';
 
 const $ = (id) => document.getElementById(id);
@@ -54,7 +61,13 @@ const CATEGORY_ICON = {
   love: '<path d="M24 40C12 31.5 7 26 7 19.8A9.3 9.3 0 0 1 24 14.5a9.3 9.3 0 0 1 17 5.3C41 26 36 31.5 24 40z"/>'
 };
 
-const state = { category: null, draws: null, reading: null, consultBusy: false };
+const state = {
+  category: null,
+  draws: null,
+  reading: null,
+  consultBusy: false,
+  predictionSession: createPredictionSession()
+};
 
 /* ---------- utils ---------- */
 function escapeHtml(str) {
@@ -126,8 +139,8 @@ function renderCategories() {
 }
 
 function selectCategory(key) {
-  state.category = CATEGORIES.find((c) => c.key === key) || null;
-  if (!state.category) return;
+  const categoryKey = assertCategoryKey(key);
+  state.category = CATEGORY_MAP[categoryKey];
   el.shuffleCategoryName.textContent = `${state.category.th} (${state.category.en})`;
   el.shuffleCategoryHint.textContent = `ดูแนวโน้มล่วงหน้า 1 เดือน · ${state.category.hint}`;
   hide(el.stepReading);
@@ -153,6 +166,8 @@ function runShuffleAnimation(times) {
 
 async function handleShuffleSubmit(event) {
   event.preventDefault();
+  const categoryKey = state.category?.key;
+  if (!categoryKey) return;
   const raw = el.shuffleCount.value.trim();
   const times = Number(raw);
   if (!raw || !Number.isInteger(times) || times < 1 || times > 99) {
@@ -163,9 +178,10 @@ async function handleShuffleSubmit(event) {
   hide(el.shuffleError);
 
   await runShuffleAnimation(times);
+  if (state.category?.key !== categoryKey) return;
 
   state.draws = drawCards(3, times);
-  state.reading = buildReading(state.category.key, state.draws);
+  state.reading = buildReading(categoryKey, state.draws, state.predictionSession);
   renderReading(times);
 }
 
@@ -268,11 +284,12 @@ async function handleConsult(event) {
   hide(el.consultResult);
   state.consultBusy = true;
   el.consultSubmit.disabled = true;
-  el.consultSubmit.textContent = 'แม่หมอกำลังอ่านไพ่...';
+  el.consultSubmit.textContent = 'แม่หมอแมวอ้วนกำลังอ่านไพ่...';
   show(el.consultLoading);
 
   const draws = drawCards(3, 3);
-  const answer = await askFortuneTeller(question, draws);
+  const categoryKey = state.category?.key || null;
+  const answer = await askFortuneTeller(question, draws, categoryKey, state.predictionSession);
   renderConsult(question, draws, answer);
 
   hide(el.consultLoading);
@@ -320,7 +337,7 @@ function renderConsult(question, draws, answer) {
       ${
         answer.notice
           ? `<p class="mt-5 rounded-2xl border border-line px-4 py-3 text-xs leading-relaxed text-gray-400">${escapeHtml(answer.notice)}</p>`
-          : `<p class="mt-5 text-xs text-gray-400">อ่านไพ่โดยแม่หมอเหมียว · ผู้ช่วย AI (${escapeHtml(answer.model || 'gemini')})</p>`
+          : `<p class="mt-5 text-xs text-gray-400">อ่านไพ่โดยแม่หมอแมวอ้วน · ผู้ช่วย AI (${escapeHtml(answer.model || 'gemini')})</p>`
       }
     </div>`;
 

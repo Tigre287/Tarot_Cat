@@ -1,6 +1,6 @@
 // เชื่อมต่อ LLM สำหรับโหมด "ปรึกษาหมอดู" — ถ้าเรียกไม่ได้จะใช้เครื่องสังเคราะห์คำตอบในเครื่องแทน
 
-import { buildConsultAnswer, detectTopic } from './reading.js';
+import { buildConsultAnswer, resolveTopic } from './reading.js';
 
 export const MAX_QUESTION_LENGTH = 500;
 
@@ -18,14 +18,18 @@ export function cardsToPayload(draws) {
 }
 
 /**
- * ถามแม่หมอ
+ * ถามแม่หมอแมวอ้วน
+ * @param {string} question
+ * @param {{ card: object, reversed: boolean }[]} draws
+ * @param {'work' | 'money' | 'health' | 'love' | null} [categoryKey=null]
+ * @param {{ recentKeys: string[], recentReadingKeys: string[], maxRecent: number }} [session]
  * @returns {Promise<object>} { source: 'gemini' | 'local', ... }
  */
-export async function askFortuneTeller(question, draws) {
+export async function askFortuneTeller(question, draws, categoryKey = null, session) {
   const trimmed = String(question || '').slice(0, MAX_QUESTION_LENGTH).trim();
   const body = {
     question: trimmed,
-    topic: detectTopic(trimmed),
+    topic: resolveTopic(trimmed, categoryKey),
     cards: cardsToPayload(draws)
   };
 
@@ -50,8 +54,8 @@ export async function askFortuneTeller(question, draws) {
     }
     throw new Error(data?.error || 'คำตอบว่างเปล่า');
   } catch (err) {
-    const local = buildConsultAnswer(trimmed, draws);
-    local.notice = 'ตอนนี้แม่หมออ่านไพ่ด้วยตำราในเครื่อง (ยังไม่ได้ต่อ AI) แต่ความแม่นตามหลักไพ่ยังอยู่ครบนะ';
+    const local = buildConsultAnswer(trimmed, draws, body.topic, session);
+    local.notice = 'ตอนนี้แม่หมอแมวอ้วนเปิดตำราอ่านให้จากในเครื่อง ถึงยังไม่ได้ต่อ AI แต่ความหมายไพ่ยังครบ ไม่อ่านมั่วให้เสียชื่อแมวนะ';
     local.reason = err?.message || String(err);
     return local;
   }

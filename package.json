@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
-    "check": "node scripts/verify-deck.js"
+    "check": "node scripts/verify-deck.js && node scripts/verify-predictions.js"
   },
   "engines": {
     "node": ">=18"

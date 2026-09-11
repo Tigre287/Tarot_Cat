@@ -1,4 +1,7 @@
-// เครื่องคำนวณคำทำนาย + น้ำเสียง "แม่หมอยิปซีสุดคิ้วท์"
+// เครื่องคำนวณคำทำนาย + น้ำเสียง "แม่หมอแมวอ้วน" ขี้แซวนิด ๆ แต่หวังดี
+
+/** @typedef {'work' | 'money' | 'health' | 'love'} CategoryKey */
+/** @typedef {{ recentKeys: string[], recentReadingKeys: string[], maxRecent: number }} PredictionSession */
 
 export const CATEGORIES = [
   { key: 'work', th: 'การงาน', en: 'Work', hint: 'หน้าที่ ตำแหน่ง ทีม โปรเจกต์' },
@@ -9,6 +12,25 @@ export const CATEGORIES = [
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]));
 
+/** @returns {PredictionSession} */
+export function createPredictionSession(maxRecent = 80) {
+  const requestedLimit = Number(maxRecent);
+  const finiteLimit = Number.isFinite(requestedLimit) ? Math.floor(requestedLimit) : 80;
+  return {
+    recentKeys: [],
+    recentReadingKeys: [],
+    maxRecent: Math.min(500, Math.max(12, finiteLimit))
+  };
+}
+
+/** @returns {CategoryKey} */
+export function assertCategoryKey(categoryKey) {
+  if (!Object.hasOwn(CATEGORY_MAP, categoryKey)) {
+    throw new TypeError(`Unknown prediction category: ${String(categoryKey)}`);
+  }
+  return categoryKey;
+}
+
 export const POSITIONS = [
   { th: 'ช่วงต้นเดือน', sub: 'จุดตั้งต้น สิ่งที่กำลังเกิดขึ้นตอนนี้' },
   { th: 'ช่วงกลางเดือน', sub: 'บทที่ต้องเจอ อุปสรรคหรือจังหวะเปลี่ยน' },
@@ -16,17 +38,115 @@ export const POSITIONS = [
 ];
 
 const LEAD_UP = [
-  'ไพ่ตั้งขึ้นสวย ๆ แม่หมอเห็นแล้วยิ้มเลย',
-  'ใบนี้หน้าตรงมาแบบมั่นใจ',
-  'เปิดมาตั้งขึ้น ถือว่าพลังไหลดีนะ',
-  'ไพ่ใบนี้ตั้งขึ้น อ่านง่ายเลยจ้า'
+  'อุ๊ย ใบนี้หงายหน้ามาชัด แม่หมอแมวอ้วนขอเคาะโต๊ะเบา ๆ ว่าอย่ามองข้ามนะ',
+  'ไพ่ใบนี้พูดตรงแบบไม่อ้อมค้อม ฟังแม่หมอให้ดีจ้า',
+  'พลังใบนี้มาเต็ม แมวอ้วนเห็นแล้วต้องพยักหน้าจนแก้มสั่น',
+  'ใบนี้เปิดมาสวย แต่แม่หมอไม่อวยเกินจริงนะ มาดูเนื้อหากัน'
 ];
 
 const LEAD_REV = [
-  'ใบนี้กลับหัวมา ไม่ได้แย่นะแต่ต้องรู้ทัน',
-  'กลับหัวแบบนี้แม่หมอขอกระซิบเบา ๆ',
-  'ไพ่คว่ำหัวลง แปลว่าพลังยังติดขัดอยู่หน่อย',
-  'ใบนี้กลับหัว เป็นสัญญาณให้เบรกคิดสักนิด'
+  'ใบนี้กลับหัวมา แมวอ้วนขอหรี่ตานิดหนึ่ง ไม่ได้น่ากลัวแต่ต้องรู้ทัน',
+  'ไพ่กลับหัวแบบนี้ แม่หมอขอกระซิบตรง ๆ ว่าอย่าเพิ่งรีบ',
+  'พลังใบนี้ยังติดพุง เอ๊ย ติดขัดอยู่หน่อย ค่อย ๆ แก้จะดีกว่า',
+  'ใบนี้คว่ำมาเตือนเบา ๆ ถ้าฝืนต่อมีสิทธิ์เหนื่อยฟรีนะจ๊ะ'
+];
+
+const CATEGORY_TAILS = {
+  work: [
+    'ดูที่ผลงานจริงกับขอบเขตหน้าที่ อย่าเดาใจหัวหน้าจนเหนื่อยเอง',
+    'ถ้าต้องคุยกับทีม พูดให้ชัดตั้งแต่ต้น งานจะไม่ย้อนกลับมากองบนโต๊ะเรา',
+    'เลือกหนึ่งเรื่องที่ควบคุมได้แล้วจัดการก่อน เรื่องอื่นจะค่อย ๆ คลายตาม',
+    'ความขยันดีนะ แต่ขยันผิดจุดก็เสียแรงฟรี แม่หมอขอให้จัดลำดับก่อน'
+  ],
+  money: [
+    'เช็กยอดจริงก่อนตัดสินใจ กระเป๋าเงินไม่ชอบคำว่า “น่าจะพอ” นะจ๊ะ',
+    'แยกสิ่งที่จำเป็นออกจากสิ่งที่ใจอยากได้ แล้วตัวเลขจะพูดความจริงเอง',
+    'รอบนี้วินัยเล็ก ๆ ทุกวันช่วยได้มากกว่าหวังเงินก้อนแบบลุ้นเอา',
+    'อย่าให้ความเกรงใจทำงบพัง เรื่องเงินคุยตรง ๆ แล้วสบายใจกว่าทีหลัง'
+  ],
+  health: [
+    'ร่างกายไม่ใช่เครื่องจักรนะ เหนื่อยก็คือเหนื่อย พักก่อนค่อยไปต่อ',
+    'เริ่มจากนอนและกินให้เป็นเวลา เรื่องพื้นฐานนี่แหละตัวจริง ไม่ใช่ตัวประกอบ',
+    'สังเกตอาการตามจริง อย่าวินิจฉัยตัวเองจากความกังวล ถ้าไม่ดีขึ้นให้พบแพทย์',
+    'ใจที่ตึงทำให้กายล้าตาม หาเวลาว่างแบบไม่ต้องมีผลงานบ้างก็ได้จ้า'
+  ],
+  love: [
+    'ดูการกระทำให้พอ ๆ กับคำพูด คนจริงใจไม่ปล่อยให้เราต้องเดาคนเดียวตลอด',
+    'อย่าเอาความเงียบไปแปลเป็นคำตอบ เปิดใจถามตรง ๆ จะได้ไม่แต่งเรื่องเอง',
+    'รักที่ดีไม่ต้องลดคุณค่าตัวเองเพื่อให้ใครอยู่ แม่หมอย้ำตรงนี้เลยนะ',
+    'ถ้าความต้องการไม่ตรงกัน คุยให้ชัดก่อน ใจเราก็สำคัญพอ ๆ กับใจเขา'
+  ]
+};
+
+const SUMMARY_OPENERS = {
+  smooth: [
+    (category) => `โอ๊ย ไพ่หงายครบสามใบ เรื่อง${category.th}รอบนี้ไหลดีจนแม่หมอแมวอ้วนอยากตบพุงฉลอง`,
+    (category) => `แม่หมอเปิดแล้วต้องยิ้ม เรื่อง${category.th}มีทางไปต่อชัดกว่าที่คิด แต่ยังต้องลงมือเองนะ`,
+    (category) => `สามใบนี้จับมือกันมาดี เรื่อง${category.th}มีลมส่งหลังให้ เดินต่อได้แบบไม่ต้องฝืนมาก`,
+    (category) => `ภาพรวม${category.th}ดูโล่ง ไพ่ไม่ได้บอกให้นอนรอโชค แต่บอกว่าขยับตอนนี้มีแรงหนุนจ้า`
+  ],
+  reset: [
+    (category) => `ไพ่กลับหัวครบสามใบ ใจเย็นก่อน เรื่อง${category.th}ไม่ได้พัง แค่ถึงเวลาหยุดวิ่งวนแบบเดิม`,
+    (category) => `แมวอ้วนขอวางขนมก่อนพูดจริงจัง เรื่อง${category.th}ต้องรีเซ็ตวิธีคิด ไม่ใช่ฝืนให้หนักกว่าเดิม`,
+    (category) => `ชุดนี้มาเตือนพร้อมกันสามใบ เรื่อง${category.th}ควรชะลอ ตั้งหลัก แล้วค่อยเลือกทางใหม่`,
+    (category) => `ภาพรวม${category.th}ยังติดขัด แต่ไพ่กำลังชี้จุดให้แก้ ไม่ได้มาขู่ให้กลัวนะ`
+  ],
+  mixed: [
+    (category) => `เรื่อง${category.th}รอบนี้มีทั้งไฟเขียวกับไฟกะพริบ แม่หมอแมวอ้วนจะชี้ให้ว่าตรงไหนควรไป ตรงไหนควรพัก`,
+    (category) => `ไพ่สามใบคุยกันเสียงดังเชียว เรื่อง${category.th}มีจังหวะดี แต่มีรายละเอียดที่ห้ามทำเป็นไม่เห็น`,
+    (category) => `ภาพรวม${category.th}ไม่ได้แย่ แค่ต้องฉลาดเลือก แรงมีเท่าไรก็ใช้ให้ถูกจุดนะจ๊ะ`,
+    (category) => `แม่หมอเห็นทางไปต่อของเรื่อง${category.th}แล้ว แต่ขอเตือนไว้ก่อนว่าใจร้อนเมื่อไร งานเข้าเมื่อนั้น`
+  ]
+};
+
+const SUMMARY_ENDINGS = {
+  light: [
+    'สรุปสั้น ๆ คือจังหวะมาแล้ว อย่ามัวแต่เล็งจนโอกาสเดินผ่านหน้าบ้าน',
+    'ปลายเดือนมีสิทธิ์ยิ้มแก้มปริ ถ้าทำสิ่งสำคัญให้ต่อเนื่องและไม่วอกแวก',
+    'ไพ่ให้ผ่าน แต่แม่หมอขอหักคะแนนคนผัดวันประกันพรุ่ง ลงมือก่อนแล้วค่อยกังวล',
+    'ทางเปิดอยู่จ้า เดินแบบมีสติแล้วผลลัพธ์จะค่อย ๆ เข้าที่เอง'
+  ],
+  careful: [
+    'สรุปคือช้าได้ แต่อย่าหลอกตัวเอง แก้ทีละจุดแล้วปลายเดือนจะเบากว่าเดิม',
+    'รอบนี้ความสม่ำเสมอชนะความรีบ แมวอ้วนรับรองว่าฝืนเร็วไปมีแต่เหนื่อย',
+    'ยังไม่ต้องตัดสินทุกอย่างวันนี้ ตั้งหลักให้แน่นแล้วคำตอบจะชัดขึ้นเอง',
+    'ไพ่ไม่ได้ปิดทาง แค่ให้เก็บรายละเอียดก่อนก้าวต่อ จะได้ไม่ต้องย้อนกลับมาแก้'
+  ]
+};
+
+const CONSULT_INTROS = [
+  (lensName) => `แม่หมอแมวอ้วนอ่านคำถามแล้ว${lensName ? ` กลิ่นเรื่อง${lensName}ชัดมาก` : ''} เลยสับไพ่ให้สามใบแบบตั้งใจสุด ๆ`,
+  (lensName) => `คำถามนี้มีอะไรให้ขบคิดนะ${lensName ? ` เป็นประเด็น${lensName}ตรง ๆ` : ''} แมวอ้วนเปิดไพ่ไว้ให้แล้ว มาค่อย ๆ อ่านกัน`,
+  (lensName) => `โอเค แม่หมอรับเรื่องแล้ว${lensName ? ` โฟกัสที่${lensName}ให้แบบไม่วอกแวก` : ''} ไพ่สามใบกำลังเล่าเป็นเรื่องเดียวกันจ้า`,
+  (lensName) => `มานี่ เดี๋ยวแมวอ้วนดูให้${lensName ? ` เรื่อง${lensName}นี้ต้องฟังทั้งเหตุและผล` : ''} เปิดไพ่มาสามใบครบแล้วนะ`
+];
+
+const VERDICT_POOLS = {
+  yes: [
+    'ไพ่เอนไปทาง “ใช่” ค่อนข้างชัด มีโอกาสไปต่อได้ดีถ้าลงมือจริง ไม่ใช่แค่คิดวนก่อนนอน',
+    'คำตอบออกทางบวกจ้า ทางเปิดอยู่ แต่ต้องพกความตั้งใจไปด้วย โชคอย่างเดียวแบกไม่ไหว',
+    'แมวอ้วนให้ไฟเขียวแบบมีเงื่อนไข ทำให้ชัดและสม่ำเสมอ แล้วผลจะเข้าข้างเรา',
+    'แนวโน้มคือไปต่อได้ ไพ่หนุนพอสมควร แต่อย่าปล่อยรายละเอียดเล็ก ๆ ให้มาสะดุดตอนท้าย'
+  ],
+  no: [
+    'ตอนนี้ไพ่ยังบอกว่า “ช้าก่อน” ไม่ใช่หมดหวัง แค่มีเงื่อนไขที่ต้องแก้ก่อนจะเดินต่อ',
+    'แมวอ้วนยังไม่ให้รีบพุ่งนะ จังหวะนี้ตั้งหลักและเก็บข้อมูลเพิ่มจะคุ้มกว่า',
+    'คำตอบยังไม่ใช่ตอนนี้ ฝืนไปมีสิทธิ์เหนื่อยฟรี แก้ต้นเหตุแล้วค่อยลองใหม่',
+    'ไพ่ขอให้พักเกมรุกไว้ก่อน มีบางอย่างยังไม่พร้อม และเราควรรู้ให้ชัดว่าคืออะไร'
+  ],
+  maybe: [
+    'คำตอบยังก้ำกึ่ง เพราะผลขึ้นอยู่กับการตัดสินใจของเรามากกว่าดวงล้วน ๆ เลือกให้ชัดแล้วทางจะชัดตาม',
+    'ไพ่ยังไม่ฟันธงจ้า ตอนนี้การกระทำหนึ่งอย่างของเราสามารถเปลี่ยนปลายทางได้เลย',
+    'แมวอ้วนเห็นสองทางพอ ๆ กัน อย่ารอให้จักรวาลเลือกแทน คุยข้อมูลให้ครบแล้วตัดสินใจเอง',
+    'สถานการณ์ยังพลิกได้ จุดสำคัญไม่ใช่เดาว่าจะเกิดอะไร แต่คือเราจะวางตัวอย่างไรต่อจากนี้'
+  ]
+};
+
+const CONSULT_CLOSINGS = [
+  'ไพ่มีไว้ส่องไฟ ไม่ได้มาจับพวงมาลัยแทนเรา เลือกทางที่เคารพตัวเอง แล้วเดินให้เต็มฝีเท้านะ',
+  'แม่หมอแมวอ้วนขอฝากไว้ว่า คำตอบที่ดีต้องทำให้ใจเบาและชีวิตเดินต่อได้ ไม่ใช่ยิ่งคิดยิ่งติดหล่ม',
+  'ฟังไพ่แล้วกลับมาฟังตัวเองด้วยนะ อะไรควรคุยก็คุย อะไรควรวางก็วาง แมวอ้วนเอาใจช่วย',
+  'ไม่ต้องเก่งทุกอย่างในวันเดียว แค่ทำก้าวถัดไปให้ซื่อตรงกับใจตัวเองก็พอจ้า'
 ];
 
 const MOOD = {
@@ -76,28 +196,40 @@ const ADVICE_POOL = {
     'อัปเดตความคืบหน้าให้หัวหน้ารู้ก่อนที่เขาจะต้องมาถาม',
     'อย่ารับงานเพิ่มถ้าของเดิมยังไม่ปิด ฝึกบอกกำหนดเวลาที่ทำได้จริง',
     'เก็บผลงานเด่นของเดือนนี้ไว้เป็นหลักฐานตอนขอขึ้นเงินเดือน',
-    'ถ้าคิดจะย้ายงาน อัปเดตเรซูเม่ไว้ก่อนแต่ยังไม่ต้องรีบยื่น'
+    'ถ้าคิดจะย้ายงาน อัปเดตเรซูเม่ไว้ก่อนแต่ยังไม่ต้องรีบยื่น',
+    'นัดคุยเรื่องที่ค้างกับคนเกี่ยวข้องให้จบ อย่าปล่อยงานแขวนจนแมวหลับไปสามตื่น',
+    'กันเวลาหนึ่งชั่วโมงไว้ทำงานยากก่อนเปิดแชต งานจะเดินเร็วกว่าคอยตอบทุกคน',
+    'เลือกสกิลหนึ่งอย่างที่ช่วยงานตอนนี้แล้วฝึกให้เห็นผลจริง ไม่ต้องเรียนสิบอย่างพร้อมกัน'
   ],
   money: [
     'แยกบัญชีเงินเก็บกับบัญชีใช้จ่ายให้ขาดกัน แล้วโอนเก็บทันทีที่เงินเข้า',
     'ลิสต์รายจ่ายรายเดือนออกมาดู แล้วตัดตัวที่จ่ายเพราะความเคยชินออกหนึ่งตัว',
     'ก่อนซื้อของเกินหลักพันให้พักไว้สองวันก่อน ถ้ายังอยากได้ค่อยซื้อ',
     'เช็กยอดหนี้และดอกเบี้ยให้เห็นตัวเลขจริง อย่าเดาแล้วปล่อยผ่าน',
-    'ตั้งเป้าเงินสำรองฉุกเฉินเป็นตัวเลขที่ชัดเจน แล้วเดินไปทีละก้าว'
+    'ตั้งเป้าเงินสำรองฉุกเฉินเป็นตัวเลขที่ชัดเจน แล้วเดินไปทีละก้าว',
+    'ตั้งงบกินเล่นรายสัปดาห์ไว้เลย แมวอ้วนเข้าใจเรื่องของอร่อย แต่กระเป๋าต้องรอดด้วย',
+    'คุยเงื่อนไขเรื่องเงินให้ครบก่อนตกลงงาน อย่ารอให้ทำเสร็จแล้วค่อยถาม',
+    'เลือกวันเช็กบัญชีประจำสัปดาห์ แค่สิบนาทีก็ช่วยไม่ให้ปลายเดือนตกใจ'
   ],
   health: [
     'ตั้งเวลานอนให้เป็นเวลาเดิมทุกวัน เริ่มจากปิดจอก่อนนอนหนึ่งชั่วโมง',
     'ดื่มน้ำให้พอและกินให้ตรงมื้อ อย่าอดแล้วไปหนักมื้อเดียว',
     'ขยับร่างกายวันละยี่สิบนาที เดินเร็วก็นับ ไม่ต้องรอเข้าฟิตเนส',
     'ถ้ามีอาการที่ค้างคาใจมานาน ให้ไปตรวจให้สบายใจ อย่าปล่อยไว้กังวลเปล่า ๆ',
-    'หาเวลาว่างที่ไม่ทำอะไรเลยสัปดาห์ละหนึ่งช่วง ให้ระบบประสาทได้พัก'
+    'หาเวลาว่างที่ไม่ทำอะไรเลยสัปดาห์ละหนึ่งช่วง ให้ระบบประสาทได้พัก',
+    'เช็กว่าช่วงไหนของวันหมดแรงที่สุด แล้วปรับมื้ออาหารหรือเวลาพักตรงนั้นก่อน',
+    'ยืดตัวและพักสายตาระหว่างงานทุกชั่วโมง ร่างกายไม่ควรถูกพับไว้หน้าโต๊ะทั้งวัน',
+    'เลือกกิจกรรมที่ทำแล้วใจนิ่งสักอย่าง แล้วใส่ไว้ในตารางเหมือนนัดสำคัญ'
   ],
   love: [
     'สื่อสารความต้องการตรง ๆ ด้วยน้ำเสียงดี ๆ อย่าใช้การงอนเป็นภาษา',
     'ถามอีกฝ่ายว่าช่วงนี้เขาต้องการอะไรจากเรา แล้วฟังให้จบก่อนตอบ',
     'ให้เวลาคุณภาพแบบไม่มีมือถือกันสักหนึ่งชั่วโมงในสัปดาห์นี้',
     'อย่าเอาเรื่องเก่ามาขึ้นศาลใหม่ทุกครั้งที่ทะเลาะ คุยทีละเรื่อง',
-    'ถ้ายังโสด เปิดพื้นที่ให้ตัวเองได้เจอคนใหม่ อย่านั่งรอคนเดิมกลับมา'
+    'ถ้ายังโสด เปิดพื้นที่ให้ตัวเองได้เจอคนใหม่ อย่านั่งรอคนเดิมกลับมา',
+    'ดูว่าอีกฝ่ายทำสม่ำเสมอไหม อย่าให้ข้อความหวานหนึ่งคืนลบความเงียบทั้งเดือนได้',
+    'ตั้งขอบเขตหนึ่งข้อที่ช่วยให้ใจปลอดภัย แล้วพูดให้ชัดโดยไม่ประชด',
+    'ถ้าคิดถึงใคร ลองถามตัวเองว่าคิดถึงเขาหรือคิดถึงความรู้สึกตอนมีเขา'
   ]
 };
 
@@ -118,14 +250,66 @@ function pickBy(list, seed) {
   return list[seed % list.length];
 }
 
+function rememberKey(session, key) {
+  if (!session) return;
+  session.recentKeys.push(key);
+  if (session.recentKeys.length > session.maxRecent) {
+    session.recentKeys.splice(0, session.recentKeys.length - session.maxRecent);
+  }
+}
+
+function drawSignature(draws) {
+  return draws.map((d) => `${d.card.id}:${d.reversed ? 'r' : 'u'}`).join('|');
+}
+
+function beginReading(session, readingKey) {
+  if (!session) return 0;
+  const repeatCount = session.recentReadingKeys.filter((key) => key === readingKey).length;
+  session.recentReadingKeys.push(readingKey);
+  if (session.recentReadingKeys.length > session.maxRecent) {
+    session.recentReadingKeys.splice(0, session.recentReadingKeys.length - session.maxRecent);
+  }
+  return repeatCount;
+}
+
+function pickFresh(list, seed, scope, session) {
+  if (!session) return pickBy(list, seed);
+  const prefix = `${scope}:`;
+  const recent = new Set(session.recentKeys);
+  let index = seed % list.length;
+
+  for (let offset = 0; offset < list.length; offset++) {
+    const candidateIndex = (index + offset) % list.length;
+    if (!recent.has(`${prefix}${candidateIndex}`)) {
+      index = candidateIndex;
+      rememberKey(session, `${prefix}${index}`);
+      return list[index];
+    }
+  }
+
+  const previous = session.recentKeys.at(-1);
+  session.recentKeys = session.recentKeys.filter((key) => !key.startsWith(prefix));
+  if (list.length > 1 && `${prefix}${index}` === previous) index = (index + 1) % list.length;
+  rememberKey(session, `${prefix}${index}`);
+  return list[index];
+}
+
 /** คำอธิบายไพ่หนึ่งใบตามหมวดที่เลือก */
-export function cardInterpretation(card, reversed, categoryKey) {
+export function cardInterpretation(card, reversed, categoryKey, session) {
+  const category = assertCategoryKey(categoryKey);
   const lens = card.cat?.[categoryKey];
   const body = reversed ? lens?.rev : lens?.up;
-  const seed = seedFrom(card.id + categoryKey + (reversed ? 'r' : 'u'));
-  const lead = reversed ? pickBy(LEAD_REV, seed) : pickBy(LEAD_UP, seed);
+  const orientation = reversed ? 'rev' : 'up';
+  const seed = seedFrom(card.id + category + orientation);
+  const lead = pickFresh(
+    reversed ? LEAD_REV : LEAD_UP,
+    seed,
+    `card-lead:${orientation}`,
+    session
+  );
+  const tail = pickFresh(CATEGORY_TAILS[category], seed + 1, `card-tail:${category}`, session);
   const fallback = (reversed ? card.rev : card.up).join(' · ');
-  return `${lead} ${body || fallback}`;
+  return `${lead} ${body || fallback} ${tail}`;
 }
 
 /** คำอธิบายแบบไม่จำกัดหมวด (ใช้กับการปรึกษาแบบพิมพ์คำถามเอง) */
@@ -135,8 +319,11 @@ export function cardKeywordLine(card, reversed) {
 }
 
 /** สร้างคำทำนาย 3 ใบสำหรับหมวดที่เลือก (ดวงรายเดือน) */
-export function buildReading(categoryKey, draws) {
-  const category = CATEGORY_MAP[categoryKey];
+export function buildReading(categoryKey, draws, session) {
+  const key = assertCategoryKey(categoryKey);
+  const category = CATEGORY_MAP[key];
+  const readingKey = `${key}:${drawSignature(draws)}`;
+  const repeatCount = beginReading(session, readingKey);
   const reversedCount = draws.filter((d) => d.reversed).length;
   const majorCount = draws.filter((d) => d.card.arcana === 'major').length;
 
@@ -159,35 +346,41 @@ export function buildReading(categoryKey, draws) {
     card: d.card,
     reversed: d.reversed,
     keywords: d.reversed ? d.card.rev : d.card.up,
-    text: cardInterpretation(d.card, d.reversed, categoryKey)
+    text: cardInterpretation(d.card, d.reversed, key, session)
   }));
 
-  const opener =
-    reversedCount === 0
-      ? `โอ๊ยยย เปิดมาตั้งขึ้นทั้งสามใบ ดวง${category.th}เดือนนี้ไหลลื่นแบบไม่ต้องออกแรงมากเลยจ้า`
-      : reversedCount === 3
-        ? `แม่หมอเห็นไพ่กลับหัวทั้งสามใบ ใจเย็นก่อนนะ นี่ไม่ใช่ดวงร้ายแต่คือสัญญาณให้รีเซ็ตวิธีจัดการเรื่อง${category.th}ใหม่`
-        : `แม่หมอเปิดไพ่ให้แล้วจ้า เรื่อง${category.th}เดือนนี้มีทั้งจังหวะดีและจุดที่ต้องระวัง อ่านให้ครบนะ`;
+  const summaryTone = reversedCount === 0 ? 'smooth' : reversedCount === 3 ? 'reset' : 'mixed';
+  const openerTemplate = pickFresh(
+    SUMMARY_OPENERS[summaryTone],
+    seedFrom(draws.map((d) => d.card.id).join('-') + key) + repeatCount,
+    `summary-opener:${summaryTone}`,
+    session
+  );
+  const opener = openerTemplate(category);
 
   const bits = [opener];
-  if (majorCount >= 2) bits.push(SUIT_TONE.major[categoryKey]);
-  else if (dominantSuit && SUIT_TONE[dominantSuit]) bits.push(SUIT_TONE[dominantSuit][categoryKey]);
-  if (reversedCount > 0) bits.push(CAUTION_ADVICE[categoryKey]);
+  if (majorCount >= 2) bits.push(SUIT_TONE.major[key]);
+  else if (dominantSuit && SUIT_TONE[dominantSuit]) bits.push(SUIT_TONE[dominantSuit][key]);
+  if (reversedCount > 0) bits.push(CAUTION_ADVICE[key]);
   bits.push(
-    reversedCount <= 1
-      ? 'สรุปคือถ้ารักษาจังหวะนี้ไว้ ปลายเดือนจะยิ้มได้แน่นอน'
-      : 'สรุปคือเดือนนี้ขอความสม่ำเสมอมากกว่าความเร็ว ค่อย ๆ แก้ทีละจุดแล้วมันดีขึ้นจริง'
+    pickFresh(
+      SUMMARY_ENDINGS[reversedCount <= 1 ? 'light' : 'careful'],
+      seedFrom(draws.map((d) => `${d.card.id}:${d.reversed}`).join('-')),
+      `summary-ending:${reversedCount <= 1 ? 'light' : 'careful'}`,
+      session
+    )
   );
 
-  const seed = seedFrom(draws.map((d) => d.card.id).join('-') + categoryKey);
-  const pool = ADVICE_POOL[categoryKey];
+  const seed = seedFrom(draws.map((d) => d.card.id).join('-') + key);
+  const pool = ADVICE_POOL[key];
   const advice = [];
   for (let i = 0; advice.length < 3 && i < pool.length * 2; i++) {
-    const item = pool[(seed + i * 3) % pool.length];
+    const item = pickFresh(pool, seed + i * 3, `advice:${key}`, session);
     if (!advice.includes(item)) advice.push(item);
   }
 
   return {
+    key: readingKey,
     category,
     mood,
     reversedCount,
@@ -223,6 +416,11 @@ export function detectTopic(question) {
   return bestScore > 0 ? best : null;
 }
 
+/** ใช้หมวดที่เลือกก่อนเสมอ และเดาจากคำถามเฉพาะเมื่อไม่มีหมวดบังคับ */
+export function resolveTopic(question, categoryKey = null) {
+  return categoryKey == null ? detectTopic(question) : assertCategoryKey(categoryKey);
+}
+
 export const CONSULT_POSITIONS = [
   { th: 'ต้นตอของเรื่อง', sub: 'สิ่งที่พาเรามาถึงจุดนี้' },
   { th: 'สิ่งที่ยังมองไม่เห็น', sub: 'มุมที่ไพ่อยากให้รู้เพิ่ม' },
@@ -230,9 +428,12 @@ export const CONSULT_POSITIONS = [
 ];
 
 /** คำตอบสำรอง (ใช้เมื่อไม่ได้ต่อ LLM) — สังเคราะห์จากหลักไพ่จริง */
-export function buildConsultAnswer(question, draws) {
-  const topic = detectTopic(question);
+export function buildConsultAnswer(question, draws, categoryKey = null, session) {
+  const topic = resolveTopic(question, categoryKey);
   const lensName = topic ? CATEGORY_MAP[topic].th : null;
+  const readingKey = `consult:${topic || 'general'}:${drawSignature(draws)}`;
+  const repeatCount = beginReading(session, readingKey);
+  const seed = seedFrom(`${question}:${drawSignature(draws)}`) + repeatCount;
 
   let score = 0;
   draws.forEach((d) => {
@@ -240,16 +441,19 @@ export function buildConsultAnswer(question, draws) {
     score += d.reversed ? -weight : weight;
   });
 
-  const verdict =
-    score >= 2
-      ? 'ไพ่โน้มไปทาง "ใช่" ค่อนข้างชัด ถ้าลงมือด้วยความตั้งใจดีโอกาสสำเร็จสูง'
-      : score <= -2
-        ? 'ไพ่ยังบอกว่า "ยังไม่ใช่จังหวะ" ไม่ได้แปลว่าไม่ได้เลย แต่ต้องแก้เงื่อนไขบางอย่างก่อน'
-        : 'ไพ่ตอบว่า "ก้ำกึ่ง" คือมันขึ้นอยู่กับการตัดสินใจของเราจริง ๆ ไม่ใช่ดวงลิขิตมาแล้ว';
+  const verdictTone = score >= 2 ? 'yes' : score <= -2 ? 'no' : 'maybe';
+  const verdict = pickFresh(
+    VERDICT_POOLS[verdictTone],
+    seed,
+    `consult-verdict:${verdictTone}`,
+    session
+  );
 
   const blocks = draws.map((d, i) => {
     const lens = topic ? d.card.cat?.[topic] : null;
-    const body = lens ? (d.reversed ? lens.rev : lens.up) : (d.reversed ? d.card.rev : d.card.up).join(' และ ');
+    const body = lens
+      ? cardInterpretation(d.card, d.reversed, topic, session)
+      : (d.reversed ? d.card.rev : d.card.up).join(' และ ');
     return {
       position: CONSULT_POSITIONS[i],
       card: d.card,
@@ -259,9 +463,18 @@ export function buildConsultAnswer(question, draws) {
     };
   });
 
-  const intro = `แม่หมออ่านคำถามแล้วนะ${lensName ? ` เรื่องนี้เป็นแนว${lensName}เลย` : ''} สับไพ่ให้เรียบร้อยแล้วเปิดออกมาสามใบจ้า`;
-  const closing =
-    'ไพ่ไม่ได้มาตัดสินชีวิตเรานะ มันมาบอกว่าตอนนี้พลังอยู่ตรงไหน เลือกทางแล้วเดินให้เต็มที่ แม่หมอเชียร์อยู่จ้า';
+  const intro = pickFresh(
+    CONSULT_INTROS,
+    seed + 1,
+    'consult-intro',
+    session
+  )(lensName);
+  const closing = pickFresh(
+    CONSULT_CLOSINGS,
+    seed + 2,
+    'consult-closing',
+    session
+  );
 
-  return { intro, blocks, verdict, closing, topic, source: 'local' };
+  return { key: readingKey, intro, blocks, verdict, closing, topic, source: 'local' };
 }
