@@ -84,7 +84,7 @@ function orientationBadge(reversed) {
 function cardTile(draw, index, label) {
   return `
     <div class="fade-up" style="animation-delay:${index * 90}ms">
-      <div class="card-frame" data-flip="${index}">
+      <div class="card-frame tarot-card" data-flip="${index}">
         <div class="flip-inner">
           <div class="flip-face flip-face--back">${cardBackSVG()}</div>
           <div class="flip-face flip-face--front${draw.reversed ? ' card-reversed' : ''}">${catCardSVG(draw.card)}</div>
@@ -220,7 +220,7 @@ function handleOracle() {
     <div class="fade-up rounded-3xl border-2 border-dashed border-ink p-6 sm:p-7">
       <div class="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
         <div class="w-32 shrink-0 sm:w-36">
-          <div class="card-frame" data-flip="0">
+          <div class="card-frame tarot-card" data-flip="0">
             <div class="flip-inner">
               <div class="flip-face flip-face--back">${cardBackSVG()}</div>
               <div class="flip-face flip-face--front">${catCardSVG(card)}</div>

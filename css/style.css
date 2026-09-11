@@ -6,6 +6,8 @@
   --ink: #111111;
   --line: #e7e7e7;
   --muted: #6b7280;
+  --classic-gold: #d4af37;
+  --warm-cream: #faf8f5;
 }
 
 * {
@@ -14,12 +16,27 @@
 
 body {
   font-family: 'Noto Sans Thai', 'Sarabun', 'Thonburi', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  background: #ffffff;
+  background: var(--warm-cream);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
 
 /* ---------- ไพ่ ---------- */
+.tarot-card {
+  overflow: hidden;
+  border: 2px solid var(--classic-gold);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.25);
+  transition:
+    transform 240ms ease,
+    box-shadow 240ms ease;
+}
+
+.tarot-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px rgba(212, 175, 55, 0.42);
+}
+
 .card-frame {
   width: 100%;
   aspect-ratio: 2 / 3;
@@ -140,6 +157,7 @@ input {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tarot-card,
   .flip-inner,
   .shuffle-card,
   .fade-up,
@@ -147,5 +165,9 @@ input {
   .spin-slow {
     animation: none !important;
     transition: none !important;
+  }
+
+  .tarot-card:hover {
+    transform: none;
   }
 }
